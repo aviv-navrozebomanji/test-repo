@@ -27,7 +27,7 @@ jobs:
           # Check if it's a feature/bugfix/hotfix branch
           if [[ "$BRANCH_NAME" =~ ^(feature|hotfix|bugfix|bug|feat)\/.* ]]; then
             echo "Deleting branch $BRANCH_NAME"
-            gh pr close "$BRANCH_NAME" --delete-branch || echo "Failed to delete branch $BRANCH_NAME"
+            git push origin --delete "$BRANCH_NAME" || echo "Failed to delete remote branch $BRANCH_NAME"
           else
             echo "Not deleting branch $BRANCH_NAME as it doesn't match our pattern"
           fi
