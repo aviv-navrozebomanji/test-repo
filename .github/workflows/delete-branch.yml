@@ -11,13 +11,27 @@ on:
 
 jobs:
   delete-merged-branch:
-    # Only run if the PR was merged (not just closed)
+    # Only run if the PR was merged (not just closed s
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Setup GitHub CLI
+        run: gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Delete merged branch
-        uses: SvanBoxel/delete-merged-branch@v1.3
-        with:
-          github_token: ${{ github.token }}
-          branch_pattern: 'feature/*, bugfix/*, hotfix/*, bug/*, feat/*'
+        run: |
+          # Get the branch that was just merged
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          
+          # Check if it's a feature/bugfix/hotfix branch
+          if [[ "$BRANCH_NAME" =~ ^(feature|hotfix|bugfix|bug|feat)\/.* ]]; then
+            echo "Deleting branch $BRANCH_NAME"
+            git push origin --delete "$BRANCH_NAME" || echo "Failed to delete remote branch $BRANCH_NAME"
+          else
+            echo "Not deleting branch $BRANCH_NAME as it doesn't match our pattern"
+          fi
+        shell: /usr/bin/bash -e {0}
