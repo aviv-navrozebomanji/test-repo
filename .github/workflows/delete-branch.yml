@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Delete merged branch
-        uses: SvanBoxel/delete-merged-branch@main
+        uses: SvanBoxel/delete-merged-branch@v1.3
         with:
           github_token: ${{ github.token }}
           branch_pattern: 'feature/*, bugfix/*, hotfix/*, bug/*, feat/*'
