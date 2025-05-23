@@ -24,9 +24,21 @@ jobs:
           # Check if it's a feature/bugfix/hotfix branch
           if [[ "$BRANCH_NAME" =~ ^(feature|hotfix|bugfix|bug|feat)\/.* ]]; then
             echo "Deleting branch $BRANCH_NAME"
-            gh repo view "${{ github.repository }}" # Just to verify we can access the repo
             gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME" || echo "Failed to delete remote branch $BRANCH_NAME"
+            echo "DELETED_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
           else
             echo "Not deleting branch $BRANCH_NAME as it doesn't match our pattern"
           fi
         shell: /usr/bin/bash -e {0}
+
+      - name: Trigger CircleCI destroy ephemeral stack
+        if: env.DELETED_BRANCH != ''
+        env:
+          CIRCLECI_API_TOKEN: ${{ secrets.CIRCLECI_API_TOKEN }}
+          DELETED_BRANCH: ${{ env.DELETED_BRANCH }}
+        run: |
+          echo "Triggering CircleCI destroy_ephemeral for $DELETED_BRANCH"
+          curl -X POST https://circleci.com/api/v2/project/github/${{ github.repository }}/pipeline \
+            -H "Circle-Token: $CIRCLECI_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"branch":"main","parameters":{"cleanup_ephemeral":true,"branch_name":"'$DELETED_BRANCH'"}}'
