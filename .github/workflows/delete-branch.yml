@@ -38,7 +38,7 @@ jobs:
           DELETED_BRANCH: ${{ env.DELETED_BRANCH }}
         run: |
           echo "Triggering CircleCI destroy_ephemeral for $DELETED_BRANCH"
-          curl -X POST https://circleci.com/api/v2/project/github/${{ github.repository }}/pipeline \
+          curl -X POST https://circleci.com/api/v2/project/github/https://github.com/axel-springer-kugawana/aviv_platform_classifieds_import.git/pipeline \
             -H "Circle-Token: $CIRCLECI_API_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{"branch":"main","parameters":{"cleanup_ephemeral":true,"branch_name":"'$DELETED_BRANCH'"}}'
