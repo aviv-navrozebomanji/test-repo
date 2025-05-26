@@ -22,6 +22,10 @@ jobs:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           REPO_NAME: aviv_platform_classifieds_import
         run: |
+          if [ -z "$CIRCLECI_API_TOKEN" ]; then
+            echo "CIRCLECI_API_TOKEN is not set"
+          else
+            echo "CIRCLECI_API_TOKEN is set"
           # Check if it's a feature/bugfix/hotfix branch
           if [[ "$BRANCH_NAME" =~ ^(feature|hotfix|bugfix|bug|feat)\/.* ]]; then
             echo "Triggering cleanup for branch $BRANCH_NAME"
