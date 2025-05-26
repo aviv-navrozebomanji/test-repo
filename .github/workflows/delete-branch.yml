@@ -44,4 +44,4 @@ jobs:
           curl -X POST https://circleci.com/api/v2/project/github/https://github.com/axel-springer-kugawana/aviv_platform_classifieds_import.git/pipeline \
             -H "Circle-Token: $CIRCLECI_API_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{"branch":"main","parameters":{"cleanup_ephemeral":true,"ticket_id":"'$TICKET_ID'"}}''
+            -d '{"branch":"main","parameters":{"cleanup_ephemeral":true,"ticket_id":"'$TICKET_ID'"}}'
