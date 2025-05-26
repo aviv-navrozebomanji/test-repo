@@ -1,4 +1,4 @@
-name: Delete branch after merge
+name: Trigger cleanup after merge
 
 permissions:
   contents: write
@@ -10,42 +10,41 @@ on:
       - 'release/*'
 
 jobs:
-  delete-merged-branch:
+  trigger-cleanup:
     # Only run if the PR was merged (not just closed)
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
-      - name: Delete merged branch
+      - name: Check branch and trigger CircleCI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CIRCLECI_API_TOKEN: ${{ secrets.CIRCLECI_API_TOKEN }}
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          REPO_NAME: aviv_platform_classifieds_import
         run: |
           # Check if it's a feature/bugfix/hotfix branch
           if [[ "$BRANCH_NAME" =~ ^(feature|hotfix|bugfix|bug|feat)\/.* ]]; then
-            echo "Deleting branch $BRANCH_NAME"
-            gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME" || echo "Failed to delete remote branch $BRANCH_NAME"
-            echo "DELETED_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
+            echo "Triggering cleanup for branch $BRANCH_NAME"
+            BRANCH_WITHOUT_PREFIX=$(echo "$DELETED_BRANCH" | sed -E 's/^(feature|hotfix|bugfix|bug|feat)\///')
+          
+            # Debugging: Print the value of BRANCH_WITHOUT_PREFIX
+            echo "BRANCH_WITHOUT_PREFIX: $BRANCH_WITHOUT_PREFIX"
+            
+            # Trigger CircleCI workflow with repo details
+            curl -X POST https://circleci.com/api/v2/project/github/$REPO_NAME/pipeline \
+              -H "Circle-Token: $CIRCLECI_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "branch":"main",
+                "parameters":{
+                  "cleanup":true,
+                  "ticket_id":"'"$BRANCH_WITHOUT_PREFIX"'",
+                  "repo":"'"$REPO_NAME"'"
+                }
+              }'
+              
+            echo "CircleCI cleanup job triggered for $BRANCH_WITHOUT_PREFIX"
           else
-            echo "Not deleting branch $BRANCH_NAME as it doesn't match our pattern"
+            echo "Not triggering cleanup for $BRANCH_NAME as it doesn't match our pattern"
           fi
         shell: /usr/bin/bash -e {0}
-
-      - name: Trigger CircleCI destroy ephemeral stacks
-        if: env.DELETED_BRANCH != ''
-        env:
-          CIRCLECI_API_TOKEN: ${{ secrets.CIRCLECI_API_TOKEN }}
-          DELETED_BRANCH: ${{ env.DELETED_BRANCH }}
-        run: |
-          # Debugging: Print the value of DELETED_BRANCH
-          echo "DELETED_BRANCH: $DELETED_BRANCH"
-          
-          # First remove the prefix (feature/, hotfix/, bugfix/, bug/, feat/)
-          BRANCH_WITHOUT_PREFIX=$(echo "$DELETED_BRANCH" | sed -E 's/^(feature|hotfix|bugfix|bug|feat)\///')
-          
-          # Debugging: Print the value of BRANCH_WITHOUT_PREFIX
-          echo "BRANCH_WITHOUT_PREFIX: $BRANCH_WITHOUT_PREFIX"
-          curl -X POST https://circleci.com/api/v2/project/github/https://github.com/axel-springer-kugawana/aviv_platform_classifieds_import.git/pipeline \
-            -H "Circle-Token: $CIRCLECI_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"branch":"'$DELETED_BRANCH'","parameters":{"cleanup_ephemeral":true,"ticket_id":"'$BRANCH_WITHOUT_PREFIX'"}}'
