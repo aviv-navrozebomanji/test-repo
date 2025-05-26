@@ -31,7 +31,7 @@ jobs:
           fi
         shell: /usr/bin/bash -e {0}
 
-      - name: Trigger CircleCI destroy ephemeral stacks
+      - name: Trigger CircleCI destroy ephemeral stack
         if: env.DELETED_BRANCH != ''
         env:
           CIRCLECI_API_TOKEN: ${{ secrets.CIRCLECI_API_TOKEN }}
