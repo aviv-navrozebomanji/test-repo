@@ -26,6 +26,7 @@ jobs:
             echo "CIRCLECI_API_TOKEN is not set"
           else
             echo "CIRCLECI_API_TOKEN is set"
+          fi
           # Check if it's a feature/bugfix/hotfix branch
           if [[ "$BRANCH_NAME" =~ ^(feature|hotfix|bugfix|bug|feat)\/.* ]]; then
             echo "Triggering cleanup for branch $BRANCH_NAME"
