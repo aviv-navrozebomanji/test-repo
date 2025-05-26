@@ -37,11 +37,15 @@ jobs:
           CIRCLECI_API_TOKEN: ${{ secrets.CIRCLECI_API_TOKEN }}
           DELETED_BRANCH: ${{ env.DELETED_BRANCH }}
         run: |
-          # Extract ticket-id from DELETED_BRANCH (assuming format like feature/TICKET-123-description)
-          TICKET_ID=$(echo "$DELETED_BRANCH" | grep -oE '[A-Z]+-[0-9]+' || echo "")
+          # Debugging: Print the value of DELETED_BRANCH
+          echo "DELETED_BRANCH: $DELETED_BRANCH"
           
-          echo "Triggering CircleCI destroy_ephemeral for $DELETED_BRANCH (Ticket: $TICKET_ID)"
+          # First remove the prefix (feature/, hotfix/, bugfix/, bug/, feat/)
+          BRANCH_WITHOUT_PREFIX=$(echo "$DELETED_BRANCH" | sed -E 's/^(feature|hotfix|bugfix|bug|feat)\///')
+          
+          # Debugging: Print the value of BRANCH_WITHOUT_PREFIX
+          echo "BRANCH_WITHOUT_PREFIX: $BRANCH_WITHOUT_PREFIX"
           curl -X POST https://circleci.com/api/v2/project/github/https://github.com/axel-springer-kugawana/aviv_platform_classifieds_import.git/pipeline \
             -H "Circle-Token: $CIRCLECI_API_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{"branch":"main","parameters":{"cleanup_ephemeral":true,"ticket_id":"'$TICKET_ID'"}}'
+            -d '{"branch":"main","parameters":{"cleanup_ephemeral":true,"ticket_id":"'$BRANCH_WITHOUT_PREFIX'"}}'
