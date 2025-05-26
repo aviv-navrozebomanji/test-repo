@@ -31,17 +31,10 @@ jobs:
             echo "BRANCH_WITHOUT_PREFIX: $BRANCH_WITHOUT_PREFIX"
             
             # Trigger CircleCI workflow with repo details
-            curl -X POST https://circleci.com/api/v2/project/github/$REPO_NAME/pipeline \
+            curl -X POST https://circleci.com/api/v2/project/github/axel-springer-kugawana/aviv_platform_classifieds_import/pipeline \
               -H "Circle-Token: $CIRCLECI_API_TOKEN" \
               -H "Content-Type: application/json" \
-              -d '{
-                "branch":"main",
-                "parameters":{
-                  "cleanup":true,
-                  "ticket_id":"'"$BRANCH_WITHOUT_PREFIX"'",
-                  "repo":"'"$REPO_NAME"'"
-                }
-              }'
+              -d '{"branch":"'$BRANCH_NAME'","parameters":{"cleanup":true,"ticket_id":"'$BRANCH_WITHOUT_PREFIX'"}}'
               
             echo "CircleCI cleanup job triggered for $BRANCH_WITHOUT_PREFIX"
           else
